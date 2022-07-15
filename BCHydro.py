@@ -22,7 +22,7 @@ PORTAL_PASSWORD = getpass.getpass(prompt='Password: ')
 gis = GIS(PORTAL_URL,PORTAL_USERNAME,PORTAL_PASSWORD)
 
 # Get Hosted Feature Layer to Update
-HFS_item = gis.content.get("Item_ID")
+# HFS_item = gis.content.get("Item_ID")
 
 # Request data from bchydro.com outages map
 url = r"https://www.bchydro.com/power-outages/app/outages-map-data.json"
@@ -32,10 +32,10 @@ x = requests.get(url)
 if x.status_code == 200:
     if x and x.json():
         # Delete all existing feature layer features and reset OBJECTID/FID counter
-        HFS_item.layers[0].delete_features(where="objectid > 0")
-        HFS_item.layers[0].manager.truncate()
+
         # Iterate through bchydro JSON items (each outage is its own item)
         for row in x.json():
+            print("ROW", row)
             # Build LAT/LONG list pairings from unseparated list of LAT/LONGS from website JSON
             latlong_list = [list(a) for a in zip(row["polygon"][::2],row["polygon"][1::2])]
             # Create Polygon Geometry WKID:4326 = WGS 1984
@@ -57,7 +57,8 @@ if x.status_code == 200:
                     "CREW_ETR": datetime.utcfromtimestamp(row['crewEtr']/1000).replace(tzinfo=timezone.utc).astimezone(tz=None) if row['crewEtr'] else None,
                     "SHOW_ETA": row['showEta'],
                     "SHOW_ETR": row['showEtr']}
-            # Create new feature
+            # # Create new feature
             newfeature = features.Feature(geom,attributes)
-            # Add feature to existing hosted feature layer
-            result = HFS_item.layers[0].edit_features(adds = [newfeature])
+            print(newfeature)
+            # # Add feature to existing hosted feature layer
+            # result = HFS_item.layers[0].edit_features(adds = [newfeature])
